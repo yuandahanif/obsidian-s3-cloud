@@ -32,7 +32,7 @@ export class Database {
 				`${absolutePath}/${this.app.vault.configDir}/plugins/${manifest.id}/assets/sql-wasm.wasm`,
 		});
 
-		const db = await this.app.vault.adapter.readBinary("history.db"); // FIXME: change to actual db name
+		const db = await this.app.vault.adapter.readBinary("files/history.sqlite"); // FIXME: change to actual db name
 		this.db = new SQL.Database(Buffer.from(db));
 	}
 

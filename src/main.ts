@@ -7,14 +7,29 @@ import {
 	WorkspaceLeaf,
 } from "obsidian";
 import { ViewWrapper, VIEW_WRAPPER_ID } from "@/views/ViewWrapper";
-import { Database } from "./db/init";
+import { Database } from "@/db/init";
+import { FolderSuggest } from "@/utils/suggesters/FolderSuggester";
 
 interface S3CloudSettings {
-	name: string;
+	s3_accessKeyId: string;
+	s3_secretAccessKey: string;
+	s3_region: string;
+	s3_bucket: string;
+
+	local_directory: string;
+	local_db_name: string;
+	local_when_delete: "delete" | "move_to_trash";
 }
 
 const DEFAULT_SETTINGS: S3CloudSettings = {
-	name: "default",
+	s3_accessKeyId: "",
+	s3_secretAccessKey: "",
+	s3_region: "",
+	s3_bucket: "",
+
+	local_directory: "",
+	local_db_name: "s3cloud",
+	local_when_delete: "move_to_trash",
 };
 
 export default class S3Cloud extends Plugin {
@@ -103,19 +118,45 @@ class SampleSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const { containerEl } = this;
+		const { containerEl, app } = this;
 
 		containerEl.empty();
 
+		const allFoldersOptions: Record<string, (value?: string) => string> =
+			{};
+
+		app.vault.getAllFolders().forEach((folder) => {
+			allFoldersOptions[folder.path] = () => folder.path;
+		});
+		console.log(
+			"SampleSettingTab ~ display ~ allFoldersOptions:",
+			allFoldersOptions
+		);
+
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
+			.setName("File temporary Directory")
+			.setDesc("It's a place to store temporary files before uploading")
+			.addSearch((cb) => {
+				new FolderSuggest(this.app, cb.inputEl);
+				cb.setPlaceholder("Example: folder1/folder2")
+					.setValue(this.plugin.settings.local_directory)
+					.onChange((new_folder) => {
+						this.plugin.settings.local_directory = new_folder;
+						this.plugin.saveSettings();
+					});
+				// @ts-ignore
+				cb.containerEl.addClass("templater_search");
+			});
+
+		new Setting(containerEl)
+			.setName("Database Name")
+			.setDesc("set the name of the database")
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settings.name)
+					.setValue(this.plugin.settings.local_db_name)
 					.onChange(async (value) => {
-						this.plugin.settings.name = value;
+						this.plugin.settings.local_db_name = value;
 						await this.plugin.saveSettings();
 					})
 			);
