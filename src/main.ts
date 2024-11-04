@@ -7,7 +7,9 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	WorkspaceLeaf,
 } from "obsidian";
+import { ReactSkeleton } from "./views/ReactClassFactory";
 
 // Remember to rename these classes and interfaces!
 
@@ -31,7 +33,8 @@ export default class S3Cloud extends Plugin {
 			"Sample Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
-				new Notice("This is a notice!");
+				// new Notice("This is a notice!");
+				this.activateView();
 			}
 		);
 		// Perform additional things with the ribbon
@@ -79,19 +82,21 @@ export default class S3Cloud extends Plugin {
 			},
 		});
 
+		this.registerView("example-view", (leaf) => new ReactSkeleton(leaf));
+
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
-		});
+		// this.registerDomEvent(document, "click", (evt: MouseEvent) => {
+		// 	console.log("click", evt);
+		// });
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		);
+		// this.registerInterval(
+		// 	window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
+		// );
 	}
 
 	onunload() {}
@@ -106,6 +111,26 @@ export default class S3Cloud extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async activateView() {
+		const { workspace } = this.app;
+
+		let leaf: WorkspaceLeaf | null = null;
+		const leaves = workspace.getLeavesOfType('example-view');
+
+		if (leaves.length > 0) {
+			// A leaf with our view already exists, use that
+			leaf = leaves[0];
+		} else {
+			// Our view could not be found in the workspace, create a new leaf
+			// in the right sidebar for it
+			leaf = workspace.getRightLeaf(false);
+			await leaf?.setViewState({ type: 'example-view', active: true });
+		}
+
+		// "Reveal" the leaf in case it is in a collapsed sidebar
+		workspace.revealLeaf(leaf!);
 	}
 }
 
