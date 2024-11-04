@@ -3,9 +3,9 @@ import { Root, createRoot } from "react-dom/client";
 import { AppContext } from "src/contexts/context";
 import { ReactView } from "./hello";
 
-const VIEW_TYPE_EXAMPLE = "example-view";
+export const VIEW_WRAPPER_ID = "example-view";
 
-export class ReactSkeleton extends ItemView {
+export class ViewWrapper extends ItemView {
 	root: Root | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
@@ -13,11 +13,11 @@ export class ReactSkeleton extends ItemView {
 	}
 
 	getViewType() {
-		return VIEW_TYPE_EXAMPLE;
+		return VIEW_WRAPPER_ID;
 	}
 
 	getDisplayText() {
-		return "Example view";
+		return "Your Files";
 	}
 
 	async onOpen() {
