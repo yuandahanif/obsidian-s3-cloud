@@ -1,6 +1,5 @@
 import {
 	App,
-	// Modal,
 	Plugin,
 	PluginSettingTab,
 	Setting,
@@ -9,17 +8,7 @@ import {
 import { ViewWrapper, VIEW_WRAPPER_ID } from "@/views/ViewWrapper";
 import { Database } from "@/db/init";
 import { FolderSuggest } from "@/utils/suggesters/FolderSuggester";
-
-interface S3CloudSettings {
-	s3_accessKeyId: string;
-	s3_secretAccessKey: string;
-	s3_region: string;
-	s3_bucket: string;
-
-	local_directory: string;
-	local_db_name: string;
-	local_when_delete: "delete" | "move_to_trash";
-}
+import { S3CloudSettings } from "@/types/settings";
 
 const DEFAULT_SETTINGS: S3CloudSettings = {
 	s3_accessKeyId: "",
@@ -30,6 +19,8 @@ const DEFAULT_SETTINGS: S3CloudSettings = {
 	local_directory: "",
 	local_db_name: "s3cloud",
 	local_when_delete: "move_to_trash",
+
+	cloudflare_worker_endpoint: "",
 };
 
 export default class S3Cloud extends Plugin {
@@ -38,7 +29,7 @@ export default class S3Cloud extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		this.database = new Database(this.app);
+		this.database = new Database(this.app, this.settings);
 
 		this.registerView(VIEW_WRAPPER_ID, (leaf) => new ViewWrapper(leaf));
 
@@ -128,10 +119,6 @@ class SampleSettingTab extends PluginSettingTab {
 		app.vault.getAllFolders().forEach((folder) => {
 			allFoldersOptions[folder.path] = () => folder.path;
 		});
-		console.log(
-			"SampleSettingTab ~ display ~ allFoldersOptions:",
-			allFoldersOptions
-		);
 
 		new Setting(containerEl)
 			.setName("File temporary Directory")
@@ -145,7 +132,7 @@ class SampleSettingTab extends PluginSettingTab {
 						this.plugin.saveSettings();
 					});
 				// @ts-ignore
-				cb.containerEl.addClass("templater_search");
+				cb.containerEl.addClass("folder_search");
 			});
 
 		new Setting(containerEl)
@@ -153,10 +140,79 @@ class SampleSettingTab extends PluginSettingTab {
 			.setDesc("set the name of the database")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
+					.setPlaceholder("Enter the name of the database")
 					.setValue(this.plugin.settings.local_db_name)
 					.onChange(async (value) => {
 						this.plugin.settings.local_db_name = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		containerEl.createEl("h2", { text: "S3 Settings" });
+
+		new Setting(containerEl)
+			.setName("Access Key ID")
+			.setDesc("Your AWS Access Key ID")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your AWS Access Key ID")
+					.setValue(this.plugin.settings.s3_accessKeyId)
+					.onChange(async (value) => {
+						this.plugin.settings.s3_accessKeyId = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Secret Access Key")
+			.setDesc("Your AWS Secret Access Key")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your AWS Secret Access Key")
+					.setValue(this.plugin.settings.s3_secretAccessKey)
+					.onChange(async (value) => {
+						this.plugin.settings.s3_secretAccessKey = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Region")
+			.setDesc("Your AWS Region")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your AWS Region")
+					.setValue(this.plugin.settings.s3_region)
+					.onChange(async (value) => {
+						this.plugin.settings.s3_region = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Bucket")
+			.setDesc("Your AWS Bucket")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your AWS Bucket")
+					.setValue(this.plugin.settings.s3_bucket)
+					.onChange(async (value) => {
+						this.plugin.settings.s3_bucket = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		containerEl.createEl("h2", { text: "Cloudflare Settings (Optional)" });
+
+		new Setting(containerEl)
+			.setName("Cloudflare Worker Endpoint")
+			.setDesc("Your Cloudflare Worker Endpoint")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your Cloudflare Worker Endpoint")
+					.setValue(this.plugin.settings.cloudflare_worker_endpoint)
+					.onChange(async (value) => {
+						this.plugin.settings.cloudflare_worker_endpoint = value;
 						await this.plugin.saveSettings();
 					})
 			);
