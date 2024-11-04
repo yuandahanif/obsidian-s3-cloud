@@ -9,4 +9,5 @@ export interface S3CloudSettings {
 	local_when_delete: "delete" | "move_to_trash";
 
 	cloudflare_worker_endpoint: string;
+	cludflare_r2_account_id: string;
 }

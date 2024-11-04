@@ -18,7 +18,7 @@ export class S3ClientWeapper {
 
 		this.client = new S3Client({
 			region: "auto",
-			endpoint: `https://${settings.cloudflare_worker_endpoint}.r2.cloudflarestorage.com`,
+			endpoint: `https://${settings.cludflare_r2_account_id}.r2.cloudflarestorage.com`,
 			credentials: {
 				accessKeyId: settings.s3_accessKeyId,
 				secretAccessKey: settings.s3_secretAccessKey,

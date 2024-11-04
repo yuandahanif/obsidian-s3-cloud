@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: S3CloudSettings = {
 	local_when_delete: "move_to_trash",
 
 	cloudflare_worker_endpoint: "",
+	cludflare_r2_account_id: "",
 };
 
 export default class S3Cloud extends Plugin {
@@ -213,6 +214,19 @@ class SampleSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.cloudflare_worker_endpoint)
 					.onChange(async (value) => {
 						this.plugin.settings.cloudflare_worker_endpoint = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Cloudflare R2 Account ID")
+			.setDesc("Your Cloudflare R2 Account ID")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your Cloudflare R2 Account ID")
+					.setValue(this.plugin.settings.cludflare_r2_account_id)
+					.onChange(async (value) => {
+						this.plugin.settings.cludflare_r2_account_id = value;
 						await this.plugin.saveSettings();
 					})
 			);
